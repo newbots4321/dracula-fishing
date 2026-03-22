@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fishing Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 40px;
+      color: red;
+      display: none;
+    }
+
+    #restartBtn {
+      padding: 10px 20px;
+      font-size: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="gameOver">
+  GAME OVER 💥<br>
+  <button id="restartBtn">Restart</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let gameRunning = true;
+
+// 🌊 Water GIF
+const waterImg = new Image();
+waterImg.src = "water.gif"; // 👈 apna water gif
+
+// 🎭 GIFs
+const manImg = new Image();
+manImg.src = "man.gif";
+
+const fishImgs = ["fish1.gif","fish2.gif","fish3.gif"];
+
+const snakeImg = new Image();
+snakeImg.src = "snake.gif";
+
+// Man
+let man = {
+  x: canvas.width / 2,
+  y: 100,
+  w: 80,
+  h: 80
+};
+
+// Rope
+let rope = {
+  x: man.x,
+  y: man.y,
+  length: 0,
+  active: false,
+  pullingUp: false
+};
+
+// Fish
+let fish = {
+  x: 200,
+  y: canvas.height - 120,
+  width: 70,
+  height: 50,
+  speed: 3,
+  caught: false,
+  eaten: false,
+  img: null
+};
+
+// Snakes
+let snakes = [
+  {x:100, y:canvas.height-200, w:80, h:40, speed:2},
+  {x:400, y:canvas.height-60, w:80, h:40, speed:-2}
+];
+
+let score = 0;
+
+// Click
+canvas.addEventListener("click", () => {
+  if (!rope.active && gameRunning) {
+    rope.active = true;
+    rope.length = 0;
+    rope.pullingUp = false;
+    rope.x = man.x;
+  }
+});
+
+// Restart
+document.getElementById("restartBtn").onclick = () => location.reload();
+
+// ☁️ Draw Sky
+function drawSky(){
+  let gradient = ctx.createLinearGradient(0,0,0,canvas.height/2);
+  gradient.addColorStop(0,"#87CEEB");
+  gradient.addColorStop(1,"#B0E0E6");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0,0,canvas.width,canvas.height/2);
+}
+
+// 🌊 Draw Water
+function drawWater(){
+  ctx.drawImage(waterImg, 0, canvas.height/2, canvas.width, canvas.height/2);
+}
+
+// Draw man
+function drawMan(){
+  ctx.drawImage(manImg, man.x-40, man.y-40, man.w, man.h);
+}
+
+// Draw fish
+function drawFish(){
+  if(!fish.eaten && fish.img){
+    ctx.drawImage(fish.img, fish.x, fish.y, fish.width, fish.height);
+  }
+}
+
+// Draw snakes
+function drawSnakes(){
+  snakes.forEach(s=>{
+    ctx.drawImage(snakeImg, s.x, s.y, s.w, s.h);
+  });
+}
+
+// Move fish
+function moveFish(){
+  if(!fish.caught && !fish.eaten){
+    fish.x += fish.speed;
+    if(fish.x<0 || fish.x+fish.width>canvas.width){
+      fish.speed *= -1;
+    }
+  }
+}
+
+// Move snakes
+function moveSnakes(){
+  snakes.forEach(s=>{
+    s.x += s.speed;
+    if(s.x<0 || s.x+s.w>canvas.width){
+      s.speed *= -1;
+    }
+  });
+}
+
+// Spawn fish
+function spawnFish(){
+  let randomFish = fishImgs[Math.floor(Math.random()*fishImgs.length)];
+  fish.img = new Image();
+  fish.img.src = randomFish;
+
+  fish.x = Math.random()*(canvas.width-80);
+  fish.y = canvas.height - 120;
+  fish.caught=false;
+  fish.eaten=false;
+}
+
+// Rope logic
+function drawRope(){
+  if(rope.active){
+
+    let speed = 25;
+
+    if(!rope.pullingUp){
+      rope.length += speed;
+    }else{
+      rope.length -= speed;
+    }
+
+    ctx.strokeStyle="black";
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(rope.x,rope.y);
+    ctx.lineTo(rope.x,rope.y+rope.length);
+    ctx.stroke();
+
+    let tipX = rope.x;
+    let tipY = rope.y + rope.length;
+
+    // Snake collision
+    snakes.forEach(s=>{
+      if(
+        tipX > s.x &&
+        tipX < s.x + s.w &&
+        tipY > s.y &&
+        tipY < s.y + s.h
+      ){
+        gameOver();
+      }
+    });
+
+    // Catch fish
+    if(
+      !fish.caught &&
+      !fish.eaten &&
+      tipX > fish.x &&
+      tipX < fish.x + fish.width &&
+      tipY > fish.y
+    ){
+      fish.caught = true;
+      rope.pullingUp = true;
+    }
+
+    // Fish follow
+    if(fish.caught && !fish.eaten){
+      fish.x = rope.x - fish.width/2;
+      fish.y = rope.y + rope.length;
+
+      if(rope.length < 80){
+        fish.eaten = true;
+        score++;
+      }
+    }
+
+    // Miss → return
+    if(tipY > canvas.height && !fish.caught){
+      rope.pullingUp = true;
+    }
+
+    // Reset
+    if(rope.length <= 0 && rope.pullingUp){
+      if(fish.eaten){
+        spawnFish();
+      }
+      rope.active=false;
+      rope.pullingUp=false;
+      rope.length=0;
+    }
+  }
+}
+
+// Score
+function drawScore(){
+  ctx.fillStyle="white";
+  ctx.font="20px Arial";
+  ctx.fillText("Score: "+score,20,30);
+}
+
+// Game Over
+function gameOver(){
+  gameRunning=false;
+  document.getElementById("gameOver").style.display="block";
+}
+
+// Loop
+function gameLoop(){
+  if(!gameRunning) return;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawSky();   // ☁️ sky
+  drawWater(); // 🌊 water
+
+  drawMan();
+  drawFish();
+  drawSnakes();
+  moveFish();
+  moveSnakes();
+  drawRope();
+  drawScore();
+
+  requestAnimationFrame(gameLoop);
+}
+
+spawnFish();
+gameLoop();
+</script>
+
+</body>
+</html>
