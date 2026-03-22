@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fishing Game</title>
+<title>Fishing Game Pro</title>
 <style>
   body { margin:0; overflow:hidden; }
 
@@ -36,11 +36,16 @@ const restartBtn = document.getElementById("restartBtn");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// ✅ LOCAL GIF FILES (same folder)
+// 🔥 IMAGE PATH (GitHub RAW use karo)
 const playerImg = new Image();
 playerImg.src = "man.gif";
 
-const fishImgs = ["fish1.gif","fish2.gif"];
+const fishImgs = [
+  "fish1.gif",
+  "fish2.gif",
+  "fish3.gif"
+];
+
 let currentFishImg = new Image();
 currentFishImg.src = fishImgs[0];
 
@@ -66,7 +71,7 @@ function init(){
     x: player.x + 40,
     y: player.y + 80,
     length: 0,
-    speed: 35,
+    speed: 30,
     down: false,
     up: false,
     target: null
@@ -108,7 +113,7 @@ function spawnSnake(){
   };
 }
 
-// 🎯 TOUCH + CLICK
+// 🎯 TOUCH + CLICK FIX (IMPORTANT)
 function shoot(){
   if(!rope.down && !rope.up && !gameOver){
     rope.down = true;
@@ -192,10 +197,10 @@ function draw(){
   ctx.fillStyle = "#87CEEB";
   ctx.fillRect(0,0,canvas.width,canvas.height/2);
 
-  // water GIF
+  // water
   ctx.drawImage(waterImg, 0, canvas.height/2, canvas.width, canvas.height/2);
 
-  // player GIF
+  // player
   ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
 
   // rope
@@ -204,10 +209,10 @@ function draw(){
   ctx.lineTo(rope.x, rope.y + rope.length);
   ctx.stroke();
 
-  // fish GIF
+  // fish
   ctx.drawImage(currentFishImg, fish.x, fish.y, fish.w, fish.h);
 
-  // snake GIF
+  // snake
   ctx.drawImage(snakeImg, snake.x, snake.y, snake.w, snake.h);
 
   if(gameOver){
@@ -224,7 +229,7 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-// 🔥 LOAD FIX
+// 🔥 IMAGE LOAD FIX
 let loaded = 0;
 let total = 4;
 
