@@ -12,7 +12,7 @@ body {
   font-family: Arial;
 }
 
-/* LOADING SCREEN */
+/* LOADING */
 #loading {
   position: fixed;
   width: 100%;
@@ -22,8 +22,26 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 30px;
+  font-size: 28px;
   z-index: 20;
+}
+
+/* START SCREEN */
+#startScreen {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 15;
+}
+
+#startBtn {
+  padding: 15px 30px;
+  font-size: 20px;
+  cursor: pointer;
 }
 
 /* GAME */
@@ -94,7 +112,6 @@ body {
   width: 70px;
   height: 70px;
   background-size: contain;
-  background-repeat: no-repeat;
 }
 
 /* SNAKE */
@@ -114,7 +131,6 @@ body {
   background: white;
   padding: 20px;
   display: none;
-  text-align: center;
   z-index: 10;
 }
 </style>
@@ -122,14 +138,17 @@ body {
 
 <body>
 
-<div id="loading">Loading Game...</div>
+<div id="loading">Loading...</div>
+
+<div id="startScreen">
+  <button id="startBtn">Start Game</button>
+</div>
 
 <div id="game">
   <div id="score">Score: 0</div>
   <div id="player"></div>
   <div id="rope"></div>
   <div id="hook"></div>
-
   <div id="water"></div>
 
   <div id="gameOver">
@@ -138,7 +157,6 @@ body {
   </div>
 </div>
 
-<!-- SOUND -->
 <audio id="fishSound" src="fish.mp3"></audio>
 <audio id="gameOverSound" src="gameover.mp3"></audio>
 
@@ -153,151 +171,136 @@ let caughtFish = null;
 let score = 0;
 let gameStopped = false;
 
-/* LOADING INTRO */
-setTimeout(() => {
-  document.getElementById("loading").style.display = "none";
-  document.getElementById("game").style.display = "block";
-  initGame();
-}, 2000);
+let fishTypes = ["fish1.gif","fish2.gif","fish3.gif"];
 
-/* FISH TYPES */
-let fishTypes = ["fish1.gif","fish2.gif","fish3.gif","fish4.gif"];
+/* LOADING → START SCREEN */
+setTimeout(()=>{
+  document.getElementById("loading").style.display="none";
+  document.getElementById("startScreen").style.display="flex";
+},2000);
+
+/* START BUTTON */
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("game").style.display="block";
+  initGame();
+};
 
 /* CREATE FISH */
-function createFish() {
+function createFish(){
   let fish = document.createElement("div");
-  fish.className = "fish";
-
-  let randomFish = fishTypes[Math.floor(Math.random()*fishTypes.length)];
-  fish.style.backgroundImage = "url('" + randomFish + "')";
-
-  fish.style.left = Math.random() * (window.innerWidth - 80) + "px";
-  fish.style.top = Math.random() * (water.clientHeight - 80) + "px";
-
-  fish.dataset.type = "fish";
+  fish.className="fish";
+  fish.style.backgroundImage = "url('" + fishTypes[Math.floor(Math.random()*fishTypes.length)] + "')";
+  fish.style.left = Math.random()* (window.innerWidth-80)+"px";
+  fish.style.top = Math.random()* (water.clientHeight-80)+"px";
+  fish.dataset.type="fish";
   water.appendChild(fish);
   move(fish);
 }
 
 /* CREATE SNAKE */
-function createSnake() {
+function createSnake(){
   let snake = document.createElement("div");
-  snake.className = "snake";
-
-  snake.style.left = Math.random() * (window.innerWidth - 100) + "px";
-  snake.style.top = Math.random() * (water.clientHeight - 100) + "px";
-
-  snake.dataset.type = "snake";
+  snake.className="snake";
+  snake.style.left = Math.random()* (window.innerWidth-100)+"px";
+  snake.style.top = Math.random()* (water.clientHeight-100)+"px";
+  snake.dataset.type="snake";
   water.appendChild(snake);
   move(snake);
 }
 
 /* MOVE */
-function move(el) {
-  let dir = Math.random() > 0.5 ? 1 : -1;
-
-  setInterval(() => {
-    if (gameStopped) return;
-
-    let left = el.offsetLeft + dir * 2;
-
-    if (left <= 0 || left >= water.clientWidth - 80) {
-      dir *= -1;
-    }
-
-    el.style.left = left + "px";
-  }, 20);
+function move(el){
+  let dir = Math.random()>0.5?1:-1;
+  setInterval(()=>{
+    if(gameStopped) return;
+    let left = el.offsetLeft + dir*2;
+    if(left<=0 || left>=water.clientWidth-80) dir*=-1;
+    el.style.left = left+"px";
+  },20);
 }
 
 /* CLICK */
-document.addEventListener("touchstart", startRope);
-document.addEventListener("mousedown", startRope);
+document.addEventListener("touchstart",startRope);
+document.addEventListener("mousedown",startRope);
 
-function startRope() {
-  if (!ropeDown && !gameStopped) ropeDown = true;
+function startRope(){
+  if(!ropeDown && !gameStopped) ropeDown=true;
 }
 
 /* LOOP */
-function loop() {
-  if (gameStopped) return;
+function loop(){
+  if(gameStopped) return;
 
   let h = rope.offsetHeight;
-
-  if (ropeDown) {
-    rope.style.height = h + speed + "px";
-  } else {
-    rope.style.height = Math.max(0, h - speed) + "px";
-  }
+  rope.style.height = ropeDown ? h+speed+"px" : Math.max(0,h-speed)+"px";
 
   hook.style.top = rope.offsetTop + rope.offsetHeight + "px";
   hook.style.left = rope.offsetLeft - 8 + "px";
 
   checkCollision();
-
   requestAnimationFrame(loop);
 }
 
 /* COLLISION */
-function checkCollision() {
+function checkCollision(){
   let hookRect = hook.getBoundingClientRect();
-  let items = document.querySelectorAll(".fish, .snake");
+  let items = document.querySelectorAll(".fish,.snake");
 
-  items.forEach(el => {
+  items.forEach(el=>{
     let rect = el.getBoundingClientRect();
 
-    if (
-      hookRect.left < rect.right &&
-      hookRect.right > rect.left &&
-      hookRect.top < rect.bottom &&
-      hookRect.bottom > rect.top
-    ) {
-      if (el.dataset.type === "snake") {
+    if(
+      hookRect.left<rect.right &&
+      hookRect.right>rect.left &&
+      hookRect.top<rect.bottom &&
+      hookRect.bottom>rect.top
+    ){
+      if(el.dataset.type==="snake"){
         document.getElementById("gameOverSound").play();
         gameOver();
       } else {
         document.getElementById("fishSound").play();
-
-        caughtFish = el;
-        ropeDown = false;
-
+        caughtFish=el;
+        ropeDown=false;
         score++;
-        document.getElementById("score").innerText = "Score: " + score;
+        document.getElementById("score").innerText="Score: "+score;
       }
     }
   });
 
-  /* FISH EAT */
-  if (caughtFish) {
-    caughtFish.style.top = hook.getBoundingClientRect().top + "px";
+  if(caughtFish){
+    caughtFish.style.top = hook.getBoundingClientRect().top+"px";
     caughtFish.style.left = hook.style.left;
 
-    if (rope.offsetHeight <= 10) {
+    if(rope.offsetHeight<=10){
       caughtFish.remove();
-      caughtFish = null;
-
-      createFish(); // INSTANT NEW
+      caughtFish=null;
+      createFish(); // instant new
     }
   }
 }
 
 /* GAME OVER */
-function gameOver() {
-  gameStopped = true;
-  document.getElementById("gameOver").style.display = "block";
+function gameOver(){
+  gameStopped=true;
+  document.getElementById("gameOver").style.display="block";
 }
 
 /* RESTART → AD */
-function restartGame() {
-  window.open("https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04", "_blank");
+function restartGame(){
+  window.open("https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04","_blank");
 }
 
-/* BACK → AUTO START */
-window.onfocus = function() {
-  if (gameStopped) location.reload();
+/* BACK → SHOW START BUTTON */
+window.onfocus = function(){
+  if(gameStopped){
+    location.reload();
+  }
 };
 
 /* INIT */
-function initGame() {
+function initGame(){
   createFish();
   createFish();
   createSnake();
