@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fishing Game Pro</title>
+<title>Fishing Game</title>
 <style>
   body { margin:0; overflow:hidden; }
 
@@ -36,24 +36,19 @@ const restartBtn = document.getElementById("restartBtn");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// 🔥 IMAGE PATH (GitHub RAW use karo)
+// ✅ LOCAL GIF FILES (same folder)
 const playerImg = new Image();
-playerImg.src = "https://raw.githubusercontent.com/USERNAME/REPO/main/player.gif";
+playerImg.src = "man.gif";
 
-const fishImgs = [
-  "fish1.gif",
-  "https://raw.githubusercontent.com/USERNAME/REPO/main/fish2.gif",
-  "https://raw.githubusercontent.com/USERNAME/REPO/main/fish3.gif"
-];
-
+const fishImgs = ["fish1.gif","fish2.gif"];
 let currentFishImg = new Image();
 currentFishImg.src = fishImgs[0];
 
 const snakeImg = new Image();
-snakeImg.src = "https://raw.githubusercontent.com/USERNAME/REPO/main/snake.gif";
+snakeImg.src = "snake.gif";
 
 const waterImg = new Image();
-waterImg.src = "https://raw.githubusercontent.com/USERNAME/REPO/main/water.gif";
+waterImg.src = "water.gif";
 
 // GAME VARIABLES
 let player, rope, fish, snake, gameOver, fishIndex;
@@ -71,7 +66,7 @@ function init(){
     x: player.x + 40,
     y: player.y + 80,
     length: 0,
-    speed: 30,
+    speed: 35,
     down: false,
     up: false,
     target: null
@@ -113,7 +108,7 @@ function spawnSnake(){
   };
 }
 
-// 🎯 TOUCH + CLICK FIX (IMPORTANT)
+// 🎯 TOUCH + CLICK
 function shoot(){
   if(!rope.down && !rope.up && !gameOver){
     rope.down = true;
@@ -197,10 +192,10 @@ function draw(){
   ctx.fillStyle = "#87CEEB";
   ctx.fillRect(0,0,canvas.width,canvas.height/2);
 
-  // water
+  // water GIF
   ctx.drawImage(waterImg, 0, canvas.height/2, canvas.width, canvas.height/2);
 
-  // player
+  // player GIF
   ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
 
   // rope
@@ -209,10 +204,10 @@ function draw(){
   ctx.lineTo(rope.x, rope.y + rope.length);
   ctx.stroke();
 
-  // fish
+  // fish GIF
   ctx.drawImage(currentFishImg, fish.x, fish.y, fish.w, fish.h);
 
-  // snake
+  // snake GIF
   ctx.drawImage(snakeImg, snake.x, snake.y, snake.w, snake.h);
 
   if(gameOver){
@@ -229,7 +224,7 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-// 🔥 IMAGE LOAD FIX
+// 🔥 LOAD FIX
 let loaded = 0;
 let total = 4;
 
