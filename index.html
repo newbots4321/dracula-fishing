@@ -1,312 +1,283 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Dracula Fishing</title>
-
 <style>
 body {
   margin: 0;
   overflow: hidden;
-  background: skyblue;
   font-family: Arial;
+  background: black;
 }
 
-/* LOADING */
-#loading {
-  position: fixed;
+/* Intro Screen */
+#intro {
+  position: absolute;
   width: 100%;
   height: 100%;
   background: black;
-  color: white;
+  color: red;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 28px;
-  z-index: 20;
-}
-
-/* START SCREEN */
-#startScreen {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 15;
+  z-index: 10;
 }
 
 #startBtn {
-  padding: 15px 30px;
+  padding: 10px 20px;
   font-size: 20px;
+  margin-top: 20px;
   cursor: pointer;
 }
 
-/* GAME */
+/* Game */
 #game {
   display: none;
-  position: relative;
-  width: 100vw;
-  height: 100vh;
 }
 
-/* SCORE */
-#score {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  z-index: 5;
-}
-
-/* PLAYER */
+/* Player */
 #player {
   position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 150px;
-  height: 150px;
-  background: url('man.gif') no-repeat center/contain;
-  z-index: 4;
+  top: 20px;
+  left: 45%;
+  width: 120px;
 }
 
-/* ROPE */
+/* Rope */
 #rope {
   position: absolute;
-  top: 150px;
-  left: 50%;
   width: 4px;
+  background: white;
+  top: 100px;
+  left: 50%;
   height: 0;
-  background: black;
-  z-index: 3;
 }
 
-/* HOOK */
+/* Hook */
 #hook {
   position: absolute;
   width: 20px;
   height: 20px;
-  background: red;
+  background: yellow;
   border-radius: 50%;
-  z-index: 3;
 }
 
-/* WATER */
+/* Water */
 #water {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 55%;
-  background: url('water.gif') no-repeat center/cover;
-  z-index: 1;
-  overflow: hidden;
+  height: 50%;
+  background: url('water.gif');
+  background-size: cover;
 }
 
-/* FISH */
+/* Fish */
 .fish {
   position: absolute;
-  width: 70px;
-  height: 70px;
-  background-size: contain;
+  width: 60px;
 }
 
-/* SNAKE */
-.snake {
+/* Snake */
+#snake {
   position: absolute;
-  width: 90px;
-  height: 90px;
-  background: url('snake.gif') no-repeat center/contain;
+  width: 80px;
 }
 
-/* GAME OVER */
+/* Score */
+#score {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-size: 20px;
+}
+
+/* Game Over */
 #gameOver {
   position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  color: white;
   display: none;
-  z-index: 10;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 </style>
 </head>
 
 <body>
 
-<div id="loading">Loading...</div>
-
-<div id="startScreen">
+<!-- Intro -->
+<div id="intro">
+  <h1>🧛 Dracula Fishing</h1>
   <button id="startBtn">Start Game</button>
 </div>
 
+<!-- Game -->
 <div id="game">
-  <div id="score">Score: 0</div>
-  <div id="player"></div>
+  <img id="player" src="man.gif">
   <div id="rope"></div>
   <div id="hook"></div>
   <div id="water"></div>
-
-  <div id="gameOver">
-    <h2>Game Over</h2>
-    <button onclick="restartGame()">Restart</button>
-  </div>
+  <img id="snake" src="snake.gif">
+  <div id="score">Score: 0</div>
 </div>
 
-<audio id="fishSound" src="fish.mp3"></audio>
-<audio id="gameOverSound" src="gameover.mp3"></audio>
+<!-- Game Over -->
+<div id="gameOver">
+  <h1>Game Over</h1>
+  <button onclick="restartGame()">Restart</button>
+</div>
+
+<!-- Sounds -->
+<audio id="fishSound" src="https://www.soundjay.com/button/sounds/button-3.mp3"></audio>
+<audio id="snakeSound" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
 <script>
+
 let rope = document.getElementById("rope");
 let hook = document.getElementById("hook");
-let water = document.getElementById("water");
+let fishSound = document.getElementById("fishSound");
+let snakeSound = document.getElementById("snakeSound");
 
+let gameRunning = false;
 let ropeDown = false;
-let speed = 25;
-let caughtFish = null;
 let score = 0;
-let gameStopped = false;
 
-let fishTypes = ["fish1.gif","fish2.gif","fish3.gif"];
-
-/* LOADING → START SCREEN */
-setTimeout(()=>{
-  document.getElementById("loading").style.display="none";
-  document.getElementById("startScreen").style.display="flex";
-},2000);
-
-/* START BUTTON */
+/* Start Game */
 document.getElementById("startBtn").onclick = () => {
-  document.getElementById("startScreen").style.display="none";
-  document.getElementById("game").style.display="block";
-  initGame();
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  startGame();
 };
 
-/* CREATE FISH */
-function createFish(){
-  let fish = document.createElement("div");
-  fish.className="fish";
-  fish.style.backgroundImage = "url('" + fishTypes[Math.floor(Math.random()*fishTypes.length)] + "')";
-  fish.style.left = Math.random()* (window.innerWidth-80)+"px";
-  fish.style.top = Math.random()* (water.clientHeight-80)+"px";
-  fish.dataset.type="fish";
-  water.appendChild(fish);
-  move(fish);
+function startGame() {
+  gameRunning = true;
+  score = 0;
+  updateScore();
+  spawnFish();
+  spawnSnake();
 }
 
-/* CREATE SNAKE */
-function createSnake(){
-  let snake = document.createElement("div");
-  snake.className="snake";
-  snake.style.left = Math.random()* (window.innerWidth-100)+"px";
-  snake.style.top = Math.random()* (water.clientHeight-100)+"px";
-  snake.dataset.type="snake";
-  water.appendChild(snake);
-  move(snake);
-}
+/* Rope control */
+document.addEventListener("click", () => {
+  if (!ropeDown && gameRunning) {
+    ropeDown = true;
+  }
+});
 
-/* MOVE */
-function move(el){
-  let dir = Math.random()>0.5?1:-1;
-  setInterval(()=>{
-    if(gameStopped) return;
-    let left = el.offsetLeft + dir*2;
-    if(left<=0 || left>=water.clientWidth-80) dir*=-1;
-    el.style.left = left+"px";
-  },20);
-}
+function gameLoop() {
+  if (!gameRunning) return;
 
-/* CLICK */
-document.addEventListener("touchstart",startRope);
-document.addEventListener("mousedown",startRope);
+  let ropeHeight = parseInt(rope.style.height || 0);
 
-function startRope(){
-  if(!ropeDown && !gameStopped) ropeDown=true;
-}
+  if (ropeDown) {
+    ropeHeight += 10;
+    if (ropeHeight > window.innerHeight / 2) {
+      ropeDown = false;
+    }
+  } else {
+    if (ropeHeight > 0) ropeHeight -= 10;
+  }
 
-/* LOOP */
-function loop(){
-  if(gameStopped) return;
+  rope.style.height = ropeHeight + "px";
 
-  let h = rope.offsetHeight;
-  rope.style.height = ropeDown ? h+speed+"px" : Math.max(0,h-speed)+"px";
-
-  hook.style.top = rope.offsetTop + rope.offsetHeight + "px";
-  hook.style.left = rope.offsetLeft - 8 + "px";
+  hook.style.top = (100 + ropeHeight) + "px";
+  hook.style.left = rope.style.left;
 
   checkCollision();
-  requestAnimationFrame(loop);
+
+  requestAnimationFrame(gameLoop);
 }
 
-/* COLLISION */
-function checkCollision(){
-  let hookRect = hook.getBoundingClientRect();
-  let items = document.querySelectorAll(".fish,.snake");
+/* Fish spawn */
+function spawnFish() {
+  let fish = document.createElement("img");
+  fish.src = "fish1.gif";
+  fish.className = "fish";
 
-  items.forEach(el=>{
-    let rect = el.getBoundingClientRect();
+  fish.style.bottom = "50px";
+  fish.style.left = Math.random() * 80 + "%";
 
-    if(
-      hookRect.left<rect.right &&
-      hookRect.right>rect.left &&
-      hookRect.top<rect.bottom &&
-      hookRect.bottom>rect.top
-    ){
-      if(el.dataset.type==="snake"){
-        document.getElementById("gameOverSound").play();
-        gameOver();
-      } else {
-        document.getElementById("fishSound").play();
-        caughtFish=el;
-        ropeDown=false;
-        score++;
-        document.getElementById("score").innerText="Score: "+score;
-      }
+  document.getElementById("game").appendChild(fish);
+
+  fish.move = setInterval(() => {
+    let x = parseFloat(fish.style.left);
+    fish.style.left = (x + 0.2) + "%";
+  }, 50);
+}
+
+/* Snake spawn */
+function spawnSnake() {
+  let snake = document.getElementById("snake");
+  snake.style.bottom = "20px";
+  snake.style.left = "20%";
+}
+
+/* Collision */
+function checkCollision() {
+  let fishes = document.querySelectorAll(".fish");
+  let snake = document.getElementById("snake");
+
+  fishes.forEach(fish => {
+    if (isCollide(hook, fish)) {
+      fishSound.play();
+
+      fish.remove();
+      score++;
+      updateScore();
+
+      spawnFish(); // NEW fish instantly
     }
   });
 
-  if(caughtFish){
-    caughtFish.style.top = hook.getBoundingClientRect().top+"px";
-    caughtFish.style.left = hook.style.left;
-
-    if(rope.offsetHeight<=10){
-      caughtFish.remove();
-      caughtFish=null;
-      createFish(); // instant new
-    }
+  if (isCollide(hook, snake)) {
+    snakeSound.play();
+    gameOver();
   }
 }
 
-/* GAME OVER */
-function gameOver(){
-  gameStopped=true;
-  document.getElementById("gameOver").style.display="block";
+/* Collision logic */
+function isCollide(a, b) {
+  let aRect = a.getBoundingClientRect();
+  let bRect = b.getBoundingClientRect();
+
+  return !(
+    aRect.top > bRect.bottom ||
+    aRect.bottom < bRect.top ||
+    aRect.right < bRect.left ||
+    aRect.left > bRect.right
+  );
 }
 
-/* RESTART → AD */
-function restartGame(){
-  window.open("https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04","_blank");
+/* Score */
+function updateScore() {
+  document.getElementById("score").innerText = "Score: " + score;
 }
 
-/* BACK → SHOW START BUTTON */
-window.onfocus = function(){
-  if(gameStopped){
-    location.reload();
-  }
-};
-
-/* INIT */
-function initGame(){
-  createFish();
-  createFish();
-  createSnake();
-  createSnake();
-  loop();
+/* Game Over */
+function gameOver() {
+  gameRunning = false;
+  document.getElementById("gameOver").style.display = "flex";
 }
+
+/* Restart + Ad */
+function restartGame() {
+  window.location.href = "https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04";
+
+  setTimeout(() => {
+    document.getElementById("gameOver").style.display = "none";
+    document.getElementById("intro").style.display = "flex";
+  }, 1000);
+}
+
+gameLoop();
+
 </script>
 
 </body>
