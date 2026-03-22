@@ -12,7 +12,23 @@ body {
   font-family: Arial;
 }
 
+/* LOADING SCREEN */
+#loading {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
+  z-index: 20;
+}
+
+/* GAME */
 #game {
+  display: none;
   position: relative;
   width: 100vw;
   height: 100vh;
@@ -34,8 +50,8 @@ body {
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 140px;
-  height: 140px;
+  width: 150px;
+  height: 150px;
   background: url('man.gif') no-repeat center/contain;
   z-index: 4;
 }
@@ -43,7 +59,7 @@ body {
 /* ROPE */
 #rope {
   position: absolute;
-  top: 140px;
+  top: 150px;
   left: 50%;
   width: 4px;
   height: 0;
@@ -106,6 +122,8 @@ body {
 
 <body>
 
+<div id="loading">Loading Game...</div>
+
 <div id="game">
   <div id="score">Score: 0</div>
   <div id="player"></div>
@@ -120,31 +138,37 @@ body {
   </div>
 </div>
 
+<!-- SOUND -->
+<audio id="fishSound" src="fish.mp3"></audio>
+<audio id="gameOverSound" src="gameover.mp3"></audio>
+
 <script>
 let rope = document.getElementById("rope");
 let hook = document.getElementById("hook");
 let water = document.getElementById("water");
 
 let ropeDown = false;
-let speed = 22;
+let speed = 25;
 let caughtFish = null;
 let score = 0;
 let gameStopped = false;
 
-/* MULTI FISH */
-let fishTypes = [
-  "fish1.gif",
-  "fish2.gif",
-  "fish3.gif",
-  "fish4.gif"
-];
+/* LOADING INTRO */
+setTimeout(() => {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  initGame();
+}, 2000);
+
+/* FISH TYPES */
+let fishTypes = ["fish1.gif","fish2.gif","fish3.gif","fish4.gif"];
 
 /* CREATE FISH */
 function createFish() {
   let fish = document.createElement("div");
   fish.className = "fish";
 
-  let randomFish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+  let randomFish = fishTypes[Math.floor(Math.random()*fishTypes.length)];
   fish.style.backgroundImage = "url('" + randomFish + "')";
 
   fish.style.left = Math.random() * (window.innerWidth - 80) + "px";
@@ -152,7 +176,6 @@ function createFish() {
 
   fish.dataset.type = "fish";
   water.appendChild(fish);
-
   move(fish);
 }
 
@@ -166,7 +189,6 @@ function createSnake() {
 
   snake.dataset.type = "snake";
   water.appendChild(snake);
-
   move(snake);
 }
 
@@ -230,8 +252,11 @@ function checkCollision() {
       hookRect.bottom > rect.top
     ) {
       if (el.dataset.type === "snake") {
+        document.getElementById("gameOverSound").play();
         gameOver();
       } else {
+        document.getElementById("fishSound").play();
+
         caughtFish = el;
         ropeDown = false;
 
@@ -241,7 +266,7 @@ function checkCollision() {
     }
   });
 
-  /* FISH → EAT + INSTANT NEW */
+  /* FISH EAT */
   if (caughtFish) {
     caughtFish.style.top = hook.getBoundingClientRect().top + "px";
     caughtFish.style.left = hook.style.left;
@@ -250,12 +275,8 @@ function checkCollision() {
       caughtFish.remove();
       caughtFish = null;
 
-      createFish(); // INSTANT NEW FISH
+      createFish(); // INSTANT NEW
     }
-  }
-
-  if (rope.offsetHeight > window.innerHeight * 0.8) {
-    ropeDown = false;
   }
 }
 
@@ -265,25 +286,24 @@ function gameOver() {
   document.getElementById("gameOver").style.display = "block";
 }
 
-/* RESTART → AD (NEW TAB) */
+/* RESTART → AD */
 function restartGame() {
   window.open("https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04", "_blank");
 }
 
-/* BACK → AUTO RESUME */
+/* BACK → AUTO START */
 window.onfocus = function() {
-  if (gameStopped) {
-    location.reload();
-  }
+  if (gameStopped) location.reload();
 };
 
 /* INIT */
-createFish();
-createFish();
-createSnake();
-createSnake();
-
-loop();
+function initGame() {
+  createFish();
+  createFish();
+  createSnake();
+  createSnake();
+  loop();
+}
 </script>
 
 </body>
