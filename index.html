@@ -28,7 +28,7 @@ body {
   z-index: 5;
 }
 
-/* PLAYER (BADA KIYA) */
+/* PLAYER */
 #player {
   position: absolute;
   top: 10px;
@@ -131,7 +131,7 @@ let caughtFish = null;
 let score = 0;
 let gameStopped = false;
 
-/* MULTIPLE FISH SUPPORT */
+/* MULTI FISH */
 let fishTypes = [
   "fish1.gif",
   "fish2.gif",
@@ -174,7 +174,7 @@ function createSnake() {
 function move(el) {
   let dir = Math.random() > 0.5 ? 1 : -1;
 
-  let interval = setInterval(() => {
+  setInterval(() => {
     if (gameStopped) return;
 
     let left = el.offsetLeft + dir * 2;
@@ -241,22 +241,19 @@ function checkCollision() {
     }
   });
 
-  /* FISH UP → MOUTH */
+  /* FISH → EAT + INSTANT NEW */
   if (caughtFish) {
-    let player = document.getElementById("player").getBoundingClientRect();
-
     caughtFish.style.top = hook.getBoundingClientRect().top + "px";
     caughtFish.style.left = hook.style.left;
 
     if (rope.offsetHeight <= 10) {
-      caughtFish.remove(); // EAT
+      caughtFish.remove();
       caughtFish = null;
 
-      createFish(); // NEW FISH
+      createFish(); // INSTANT NEW FISH
     }
   }
 
-  /* FULL DOWN LIMIT */
   if (rope.offsetHeight > window.innerHeight * 0.8) {
     ropeDown = false;
   }
@@ -268,10 +265,17 @@ function gameOver() {
   document.getElementById("gameOver").style.display = "block";
 }
 
-/* RESTART + AD */
+/* RESTART → AD (NEW TAB) */
 function restartGame() {
-  window.location.href = "https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04";
+  window.open("https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04", "_blank");
 }
+
+/* BACK → AUTO RESUME */
+window.onfocus = function() {
+  if (gameStopped) {
+    location.reload();
+  }
+};
 
 /* INIT */
 createFish();
