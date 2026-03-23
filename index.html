@@ -154,6 +154,7 @@ let speed = 25;
 let caughtFish = null;
 let score = 0;
 let gameStopped = false;
+let fishInterval;
 
 setTimeout(() => {
   document.getElementById("loading").style.display = "none";
@@ -163,7 +164,7 @@ setTimeout(() => {
 
 let fishTypes = ["fish1.gif","fish2.gif","fish3.gif","fish4.gif"];
 
-/* CREATE FISH */
+// CREATE FISH
 function createFish() {
   let fish = document.createElement("div");
   fish.className = "fish";
@@ -176,7 +177,7 @@ function createFish() {
   move(fish);
 }
 
-/* CREATE SNAKE */
+// CREATE SNAKE
 function createSnake() {
   let snake = document.createElement("div");
   snake.className = "snake";
@@ -187,7 +188,7 @@ function createSnake() {
   move(snake);
 }
 
-/* MOVE ELEMENT */
+// MOVE ELEMENT
 function move(el) {
   let dir = Math.random() > 0.5 ? 1 : -1;
   setInterval(() => {
@@ -205,17 +206,16 @@ function startRope() {
   if (!ropeDown && !gameStopped) ropeDown = true;
 }
 
-/* MAIN LOOP */
+// MAIN LOOP
 function loop() {
   if (gameStopped) return;
 
-  // Handle rope height properly
+  // handle rope smoothly
   let h = rope.offsetHeight;
-
   if (ropeDown) {
-    rope.style.height = h + speed + "px";
+    rope.style.height = Math.min(h + speed, window.innerHeight - 150); // max height limit
   } else {
-    rope.style.height = Math.max(0, h - speed) + "px"; // never goes below 0
+    rope.style.height = Math.max(0, h - speed);
   }
 
   hook.style.top = rope.offsetTop + rope.offsetHeight + "px";
@@ -225,7 +225,7 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-/* COLLISION */
+// COLLISION
 function checkCollision() {
   let hookRect = hook.getBoundingClientRect();
   let items = document.querySelectorAll(".fish, .snake");
@@ -251,7 +251,6 @@ function checkCollision() {
     }
   });
 
-  // Fish moves with hook
   if (caughtFish) {
     let playerRect = player.getBoundingClientRect();
     caughtFish.style.top = hook.getBoundingClientRect().top + "px";
@@ -265,13 +264,14 @@ function checkCollision() {
   }
 }
 
-/* GAME OVER */
+// GAME OVER
 function gameOver() {
   gameStopped = true;
   document.getElementById("gameOver").style.display = "block";
+  clearInterval(fishInterval);
 }
 
-/* RESTART WITH 6 SEC AD */
+// RESTART
 function restartGame() {
   window.open("https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04", "_blank");
   document.getElementById("gameOver").innerHTML = "<h2>Watching Ad...</h2>";
@@ -279,10 +279,16 @@ function restartGame() {
 }
 
 function initGame() {
-  createFish();
-  createFish();
+  // spawn multiple fish at start
+  for (let i = 0; i < 3; i++) createFish();
   createSnake();
   createSnake();
+
+  // ensure fish spawn continuously if somehow missed
+  fishInterval = setInterval(() => {
+    if (!gameStopped) createFish();
+  }, 3000);
+
   loop();
 }
 
