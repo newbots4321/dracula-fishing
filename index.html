@@ -12,7 +12,6 @@ body {
   font-family: Arial;
 }
 
-/* LOADING SCREEN */
 #loading {
   position: fixed;
   width: 100%;
@@ -26,7 +25,6 @@ body {
   z-index: 20;
 }
 
-/* GAME */
 #game {
   display: none;
   position: relative;
@@ -34,7 +32,6 @@ body {
   height: 100vh;
 }
 
-/* SCORE */
 #score {
   position: absolute;
   top: 10px;
@@ -44,7 +41,6 @@ body {
   z-index: 5;
 }
 
-/* PLAYER */
 #player {
   position: absolute;
   top: 10px;
@@ -56,7 +52,6 @@ body {
   z-index: 4;
 }
 
-/* ROPE */
 #rope {
   position: absolute;
   top: 150px;
@@ -67,7 +62,6 @@ body {
   z-index: 3;
 }
 
-/* HOOK */
 #hook {
   position: absolute;
   width: 20px;
@@ -77,7 +71,6 @@ body {
   z-index: 3;
 }
 
-/* WATER */
 #water {
   position: absolute;
   bottom: 0;
@@ -88,7 +81,6 @@ body {
   overflow: hidden;
 }
 
-/* FISH */
 .fish {
   position: absolute;
   width: 70px;
@@ -97,7 +89,6 @@ body {
   background-repeat: no-repeat;
 }
 
-/* SNAKE */
 .snake {
   position: absolute;
   width: 90px;
@@ -105,7 +96,6 @@ body {
   background: url('snake.gif') no-repeat center/contain;
 }
 
-/* GAME OVER */
 #gameOver {
   position: absolute;
   top: 40%;
@@ -138,7 +128,6 @@ body {
   </div>
 </div>
 
-<!-- SOUND -->
 <audio id="fishSound" src="fish.mp3"></audio>
 <audio id="gameOverSound" src="gameover.mp3"></audio>
 
@@ -146,6 +135,7 @@ body {
 let rope = document.getElementById("rope");
 let hook = document.getElementById("hook");
 let water = document.getElementById("water");
+let player = document.getElementById("player");
 
 let ropeDown = false;
 let speed = 25;
@@ -153,17 +143,15 @@ let caughtFish = null;
 let score = 0;
 let gameStopped = false;
 
-/* LOADING INTRO */
+/* LOADING */
 setTimeout(() => {
   document.getElementById("loading").style.display = "none";
   document.getElementById("game").style.display = "block";
   initGame();
 }, 2000);
 
-/* FISH TYPES */
 let fishTypes = ["fish1.gif","fish2.gif","fish3.gif","fish4.gif"];
 
-/* CREATE FISH */
 function createFish() {
   let fish = document.createElement("div");
   fish.className = "fish";
@@ -179,7 +167,6 @@ function createFish() {
   move(fish);
 }
 
-/* CREATE SNAKE */
 function createSnake() {
   let snake = document.createElement("div");
   snake.className = "snake";
@@ -192,7 +179,6 @@ function createSnake() {
   move(snake);
 }
 
-/* MOVE */
 function move(el) {
   let dir = Math.random() > 0.5 ? 1 : -1;
 
@@ -209,7 +195,6 @@ function move(el) {
   }, 20);
 }
 
-/* CLICK */
 document.addEventListener("touchstart", startRope);
 document.addEventListener("mousedown", startRope);
 
@@ -217,7 +202,6 @@ function startRope() {
   if (!ropeDown && !gameStopped) ropeDown = true;
 }
 
-/* LOOP */
 function loop() {
   if (gameStopped) return;
 
@@ -233,7 +217,6 @@ function loop() {
   hook.style.left = rope.offsetLeft - 8 + "px";
 
   checkCollision();
-
   requestAnimationFrame(loop);
 }
 
@@ -266,16 +249,20 @@ function checkCollision() {
     }
   });
 
-  /* FISH EAT */
+  /* FISH GO TO MOUTH */
   if (caughtFish) {
+    let playerRect = player.getBoundingClientRect();
+
+    // move fish with hook
     caughtFish.style.top = hook.getBoundingClientRect().top + "px";
     caughtFish.style.left = hook.style.left;
 
-    if (rope.offsetHeight <= 10) {
+    // when reaches player mouth area
+    if (hook.getBoundingClientRect().top <= playerRect.bottom) {
       caughtFish.remove();
       caughtFish = null;
 
-      createFish(); // INSTANT NEW
+      createFish(); // unlimited fish
     }
   }
 }
@@ -286,17 +273,23 @@ function gameOver() {
   document.getElementById("gameOver").style.display = "block";
 }
 
-/* RESTART → AD */
+/* RESTART WITH 6 SEC AD */
 function restartGame() {
   window.open("https://www.profitablecpmratenetwork.com/iy9ptsnc?key=26c69782d6098c9e1abc58f7ece9aa04", "_blank");
+
+  document.getElementById("gameOver").innerHTML = "<h2>Watching Ad...</h2>";
+
+  setTimeout(() => {
+    location.reload();
+  }, 6000);
 }
 
-/* BACK → AUTO START */
 window.onfocus = function() {
-  if (gameStopped) location.reload();
+  if (gameStopped) {
+    // wait handled in restart
+  }
 };
 
-/* INIT */
 function initGame() {
   createFish();
   createFish();
