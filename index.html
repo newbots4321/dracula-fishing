@@ -26,101 +26,20 @@ body {
   z-index: 20;
 }
 
-#loading h1 {
-  font-size: 50px;
-  margin: 0;
-}
+#loading h1 { font-size: 50px; margin:0; }
+#loading p { font-size: 20px; margin-top:10px; }
 
-#loading p {
-  font-size: 20px;
-  margin-top: 10px;
-}
-
-#game {
-  display: none;
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
-#score {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  z-index: 5;
-}
-
-#player {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 150px;
-  height: 150px;
-  background: url('man.gif') no-repeat center/contain;
-  z-index: 4;
-}
-
-#rope {
-  position: absolute;
-  top: 150px;
-  left: 50%;
-  width: 4px;
-  height: 0;
-  background: black;
-  z-index: 3;
-}
-
-#hook {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: red;
-  border-radius: 50%;
-  z-index: 3;
-}
-
-#water {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 55%;
-  background: url('water.gif') no-repeat center/cover;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.fish {
-  position: absolute;
-  width: 70px;
-  height: 70px;
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-.snake {
-  position: absolute;
-  width: 90px;
-  height: 90px;
-  background: url('snake.gif') no-repeat center/contain;
-}
-
-#gameOver {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
-  display: none;
-  text-align: center;
-  z-index: 10;
-}
+#game { display:none; position:relative; width:100vw; height:100vh; }
+#score { position:absolute; top:10px; left:10px; font-size:24px; font-weight:bold; z-index:5; }
+#player { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:150px; height:150px; background:url('man.gif') no-repeat center/contain; z-index:4; }
+#rope { position:absolute; top:150px; left:50%; width:4px; height:0; background:black; z-index:3; }
+#hook { position:absolute; width:20px; height:20px; background:red; border-radius:50%; z-index:3; }
+#water { position:absolute; bottom:0; width:100%; height:55%; background:url('water.gif') no-repeat center/cover; z-index:1; overflow:hidden; }
+.fish { position:absolute; width:70px; height:70px; background-size:contain; background-repeat:no-repeat; }
+.snake { position:absolute; width:90px; height:90px; background:url('snake.gif') no-repeat center/contain; }
+#gameOver { position:absolute; top:40%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; display:none; text-align:center; z-index:10; }
 </style>
 </head>
-
 <body>
 
 <div id="loading">
@@ -154,15 +73,15 @@ let speed = 25;
 let caughtFish = null;
 let score = 0;
 let gameStopped = false;
-let fishInterval;
 
+let fishTypes = ["fish1.gif","fish2.gif","fish3.gif","fish4.gif"];
+
+// LOADING
 setTimeout(() => {
   document.getElementById("loading").style.display = "none";
   document.getElementById("game").style.display = "block";
   initGame();
 }, 2000);
-
-let fishTypes = ["fish1.gif","fish2.gif","fish3.gif","fish4.gif"];
 
 // CREATE FISH
 function createFish() {
@@ -199,9 +118,9 @@ function move(el) {
   }, 20);
 }
 
+// START ROPE
 document.addEventListener("touchstart", startRope);
 document.addEventListener("mousedown", startRope);
-
 function startRope() {
   if (!ropeDown && !gameStopped) ropeDown = true;
 }
@@ -210,10 +129,11 @@ function startRope() {
 function loop() {
   if (gameStopped) return;
 
-  // handle rope smoothly
+  // ROPE SMOOTH FIX
+  let maxRopeHeight = window.innerHeight - 150;
   let h = rope.offsetHeight;
   if (ropeDown) {
-    rope.style.height = Math.min(h + speed, window.innerHeight - 150); // max height limit
+    rope.style.height = Math.min(h + speed, maxRopeHeight);
   } else {
     rope.style.height = Math.max(0, h - speed);
   }
@@ -268,7 +188,6 @@ function checkCollision() {
 function gameOver() {
   gameStopped = true;
   document.getElementById("gameOver").style.display = "block";
-  clearInterval(fishInterval);
 }
 
 // RESTART
@@ -278,23 +197,24 @@ function restartGame() {
   setTimeout(() => { location.reload(); }, 6000);
 }
 
+// INIT GAME
 function initGame() {
   // spawn multiple fish at start
-  for (let i = 0; i < 3; i++) createFish();
+  for (let i=0; i<3; i++) createFish();
   createSnake();
   createSnake();
 
-  // ensure fish spawn continuously if somehow missed
-  fishInterval = setInterval(() => {
+  // continuously spawn fish every 2s if needed
+  setInterval(() => {
     if (!gameStopped) createFish();
-  }, 3000);
+  }, 2000);
 
   loop();
 }
 
 window.onfocus = function() {
   if (gameStopped) {
-    // restart waits handled
+    // handled by restart
   }
 }
 </script>
